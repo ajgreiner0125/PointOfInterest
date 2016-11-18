@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PointOfInterest</string>
+    <string name="origin_message">Enter your starting address</string>
+    <string name="destination_message">Enter your destination address</string>
+    <string name="button_send">Send</string>
+    <string name="title_activity_maps">Map</string>
+</resources>
