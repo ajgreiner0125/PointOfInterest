@@ -6,6 +6,11 @@ import android.graphics.Color;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -29,6 +34,14 @@ public class MapsActivity extends FragmentActivity implements
 
     //count of chosen destinations currently limited to three
     int count = 0;
+
+    //the listview, pressing a location's window adds
+    //that location to this listview
+    private ListView mListView;
+
+    //and the list and adaptor used to connect the data to the listview
+    ArrayList<String> listItems=new ArrayList<String>();
+    ArrayAdapter<String> adapter;
 
 
     //the list of all place data taken from the
@@ -76,6 +89,33 @@ public class MapsActivity extends FragmentActivity implements
         }
 
         places = databaseHelper.grabPlaces();
+
+        //define the adapter used to control the listView changes in
+        //listItems should be reflected in the listview when
+        //you call notifyDataSetChanged() on the adapter
+        mListView = (ListView) findViewById(R.id.places_list_view);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //get the string from the listView
+                String entry= (String) parent.getAdapter().getItem(position);
+
+                //System.out.println(entry);
+
+                //remove the string from the list used to generate the list and
+                //from the final places list
+                listItems.remove(position);
+                finalPlaces.remove(position);
+                count--;
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+        adapter=new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1,
+                listItems);
+        mListView.setAdapter(adapter);
     }
 
     private static void callFetcher(DirectionsFetcher fetcher){
@@ -114,6 +154,7 @@ public class MapsActivity extends FragmentActivity implements
         //mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
 
+        //list of places the user intends to travel to
         finalPlaces = new ArrayList<Place>();
 
 
@@ -194,7 +235,10 @@ public class MapsActivity extends FragmentActivity implements
         if(count < 3) {
             Place windowPlace = (Place) marker.getTag();
             finalPlaces.add(windowPlace);
+            listItems.add(windowPlace.name);
+            adapter.notifyDataSetChanged();
             count++;
+
         }
     }
 
@@ -203,6 +247,22 @@ public class MapsActivity extends FragmentActivity implements
 
         //clear all markers and the route polyLine and create a new polyline
         mMap.clear();
+
+        //clear the button and change listview listener
+        Button button;
+        button = (Button) findViewById(R.id.goButton);
+        ViewGroup layout = (ViewGroup) button.getParent();
+        if(null!=layout) { //for safety only  as you are doing onClick
+            layout.removeView(button);
+        }
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
+            }
+        });
 
         //System.out.println("finalPlaces size: "+ finalPlaces.size());
         if(finalPlaces.size() == 0) {
